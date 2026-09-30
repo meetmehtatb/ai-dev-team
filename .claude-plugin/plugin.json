@@ -1,6 +1,6 @@
 {
   "name": "ai-dev-team",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A Claude Code agent team that turns a rough requirement or GitHub issue into a tested, reviewed pull request: think, plan, develop, test, review (correctness, code quality, security), PR, then an independent PR review in a fresh session.",
   "author": {
     "name": "Meet Mehta",

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+- New **triage** agent: sizes each task and picks a pipeline, **quick** (developer, tester, quick-mode reviewer), **standard** (adds baseline, tests, code-quality, security, fresh review) or **full** (adds analyst and architect).
+- Safety floor: risk flags (auth, API, input, data, dependencies, secrets, payments, personal data) force at least standard with security; tests always run on code changes; when unsure, the bigger tier wins.
+- Escalation: after every developer round the orchestrator compares the real diff with triage's estimate and upgrades the tier if needed; a quick-tier test failure or a reviewer `ESCALATE:` also escalates.
+- Reviewer **quick mode** (also checks obvious quality and security issues) and tester quick mode.
+- `/solve-issue --quick` / `--full` overrides; `/plan-issue` shows the triage result.
+- README: "Right-sized pipelines" section with diagram and comparison table.
+
 ## 1.3.0
 - Works in cloud sessions (Claude mobile app, claude.ai/code): GitHub operations use `gh` when available and the GitHub MCP tools otherwise.
 - Review agents no longer call GitHub; the orchestrator prepares a PR bundle (`ai-runs/pr-P/`) and posts the review.
