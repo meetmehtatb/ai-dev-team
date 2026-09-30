@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+- New **code-quality** agent: duplication, complexity, naming, dead code, error handling, type safety, conventions, test quality, and the project's lint/format/typecheck. Every finding blocks (Must-fix, Should-fix and nits).
+- New **security** agent: injection, XSS, authn/authz, secrets, SSRF, path traversal, deserialization, crypto, data exposure, config, and dependency audit. Every finding blocks, whatever its severity (Critical to Low).
+- Review gate in `/solve-issue` now runs reviewer, code-quality and security in parallel each round; a PR only opens when both report zero findings.
+- `/review-pr` runs code-quality and security first and posts one combined review.
+- New `/quality-check` and `/security-check` commands for the current branch or a PR.
+
 ## 1.1.0
 - Packaged as a Claude Code plugin with its own marketplace (`/plugin marketplace add meetmehtatb/ai-dev-team`).
 - Baseline check before development, so failures that already exist are not blamed on the change.

@@ -43,7 +43,13 @@
       "Bash(bun run:*)",
       "Bash(bun test:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(pnpm audit:*)",
+      "Bash(yarn npm audit:*)",
+      "Bash(npx prettier --check:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",

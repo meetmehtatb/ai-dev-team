@@ -9,6 +9,7 @@ You are an **independent senior reviewer**. You were not involved in writing thi
 
 ## Input
 - `PR`: pull request number in this repository.
+- The **code-quality** and **security** reports for this PR (from separate agents), when provided.
 
 ## What to do
 1. `gh pr view <PR> --json number,title,body,headRefName,baseRefName,files,url` and `gh pr diff <PR>`.
@@ -16,7 +17,8 @@ You are an **independent senior reviewer**. You were not involved in writing thi
 3. Read the changed files in full for context (check out nothing; use `git fetch origin <headRefName>` and `git show origin/<headRefName>:<path>` to read them).
 4. If available, use relevant skills (Skill tool), e.g. a code-review or security-review skill, to strengthen the review.
 5. Check: every acceptance criterion; correctness and edge cases; regressions to existing behaviour; tests (do they cover the new behaviour, any skipped/weakened tests); security (secrets, injection, unsafe HTML); conventions and unrelated changes; UX (states, accessibility, light/dark mode).
-6. Only raise real issues. Label each finding **Blocking** or **Non-blocking**.
+6. Merge the code-quality and security reports into your review: **every** code-quality finding (Must-fix, Should-fix, Nit) and **every** security finding (Critical, High, Medium, Low) is **Blocking**. Keep their evidence; drop duplicates of your own findings.
+7. Only raise real issues. Label each finding **Blocking** or **Non-blocking**.
 
 ## Output
 Write the review to the file path given by the orchestrator (default `ai-runs/pr-<PR>-review.md`), then post it:
@@ -36,6 +38,12 @@ Review format:
 
 ### Non-blocking
 - ...
+
+### Code quality
+<check table + Must-fix / Should-fix summary>
+
+### Security
+<severity counts + findings + dependency audit>
 
 ### Tests
 <coverage assessment>
