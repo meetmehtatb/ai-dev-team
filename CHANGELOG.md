@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+- Works in cloud sessions (Claude mobile app, claude.ai/code): GitHub operations use `gh` when available and the GitHub MCP tools otherwise.
+- Review agents no longer call GitHub; the orchestrator prepares a PR bundle (`ai-runs/pr-P/`) and posts the review.
+- Post-PR review falls back to fresh sub-agents in the same session when `claude -p` is unavailable.
+- Project install (`install.sh <repo>` / `install.ps1 -Project`) now includes the safety hook and adds `ai-runs/` to `.gitignore`; commit `.claude/` to use the team from your phone.
+- README: new "Use it from your phone or the web" section with diagram.
+
 ## 1.2.1
 - README rewritten for onboarding: contents, 30-second overview, full-flow, run-sequence, agents, Docker and safety diagrams (Mermaid, rendered by GitHub), run outputs, FAQ and repo map. PNG exports in `docs/diagrams/`.
 - New `AGENTS.md`: orientation and contracts for AI assistants working on this repo.

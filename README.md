@@ -19,12 +19,13 @@ A team of eight Claude Code agents does the work. One thinks the idea through, o
 5. [The agents](#the-agents)
 6. [What blocks a PR](#what-blocks-a-pr)
 7. [What a run leaves behind](#what-a-run-leaves-behind)
-8. [Run it in Docker](#run-it-in-docker-optional-safer)
-9. [Safety](#safety)
-10. [Skills and permissions](#skills-and-permissions)
-11. [Manual install](#manual-install-without-the-plugin)
-12. [Troubleshooting and FAQ](#troubleshooting-and-faq)
-13. [For contributors and AI assistants](#for-contributors-and-ai-assistants)
+8. [Use it from your phone or the web](#use-it-from-your-phone-or-the-web)
+9. [Run it in Docker](#run-it-in-docker-optional-safer)
+10. [Safety](#safety)
+11. [Skills and permissions](#skills-and-permissions)
+12. [Manual install](#manual-install-without-the-plugin)
+13. [Troubleshooting and FAQ](#troubleshooting-and-faq)
+14. [For contributors and AI assistants](#for-contributors-and-ai-assistants)
 
 ---
 
@@ -255,6 +256,46 @@ ai-runs/
 
 ---
 
+## Use it from your phone or the web
+
+Claude Code also runs in the cloud: in the **Claude mobile app** (Code tab) and at **claude.ai/code**. Cloud sessions start from a fresh copy of your GitHub repo, so the team has to live **inside the repo** (in its `.claude/` folder). Set this up once per repo:
+
+```mermaid
+flowchart LR
+    A[💻 On your computer<br/>install.sh your-repo] --> B[📁 your-repo/.claude/<br/>agents · commands · hook]
+    B --> C[⬆️ commit + push<br/>to the default branch]
+    C --> D[📱 Claude app → Code<br/>pick your repo]
+    D --> E["/solve-issue &quot;idea&quot;"]
+```
+
+**1. Add the team to the repo** (on a computer, once per repo)
+```bash
+git clone https://github.com/meetmehtatb/ai-dev-team
+./ai-dev-team/install.sh /path/to/your-repo            # macOS / Linux / Git Bash
+.\ai-dev-team\install.ps1 -Project C:\path\to\your-repo  # Windows
+```
+
+**2. Commit and push it to the default branch** (directly or through a PR)
+```bash
+cd /path/to/your-repo
+git add .claude .gitignore
+git commit -m "Add AI dev team"
+git push
+```
+
+**3. Use it from your phone**
+1. Open the **Claude app** → **Code** (or claude.ai/code in a browser).
+2. Pick your repository and start a session. Make sure the Claude GitHub app has access to the repo.
+3. Type `/solve-issue "your idea"`, `/review-pr 12`, `/security-check` and so on, exactly as on a computer.
+
+**What's different in the cloud**
+- No `gh` needed: the team detects cloud sessions and uses the built-in GitHub tools for issues, PRs and reviews.
+- The post-PR review runs as fresh sub-agents in the same session (they see only the PR, never the build), instead of a separate `claude -p` process.
+- The work happens on the cloud copy; the pushed `issue-N` branch and the PR are what you keep. Merge from GitHub (the GitHub mobile app works well for this).
+- To update the team in a repo later, run the install script again and commit the changes.
+
+---
+
 ## Run it in Docker (optional, safer)
 
 The agents run your project's code and tests. Docker keeps that inside a container, away from your machine. The image already has Claude Code, the team, git, the GitHub CLI, Node 22, npm, pnpm and yarn.
@@ -382,7 +423,7 @@ git clone https://github.com/meetmehtatb/ai-dev-team && cd ai-dev-team
 .\install.ps1 -Project C:\repo   # one project (Windows)
 ```
 
-The manual install copies the agents, commands and permissions. It does **not** include the safety hook; the plugin does.
+The manual install copies the agents, commands, the safety hook and permissions. A project install (`install.sh /path/to/repo`) also adds `ai-runs/` to `.gitignore`; commit `.claude/` to use the team from your phone or the web.
 
 ---
 
@@ -401,7 +442,7 @@ The manual install copies the agents, commands and permissions. It does **not** 
 
 **Which projects does it work with?** Any GitHub repository. npm, pnpm, yarn and bun are detected automatically from the lockfile, and the default branch is detected too. Other stacks (Python, Go, Java, …) work when their standard test tooling is set up.
 
-**Does it work in VS Code, JetBrains or Cursor?** Yes, anywhere Claude Code runs: the terminal, the VS Code and JetBrains extensions, Cursor's terminal, and the Claude desktop app. It does not run inside other agents (Cursor's own agent, Devin, Copilot).
+**Does it work in VS Code, JetBrains, Cursor or on my phone?** Yes, anywhere Claude Code runs: the terminal, the VS Code and JetBrains extensions, Cursor's terminal, the Claude desktop app, and cloud sessions in the Claude mobile app and claude.ai/code (see [Use it from your phone or the web](#use-it-from-your-phone-or-the-web)). It does not run inside other agents (Cursor's own agent, Devin, Copilot).
 
 **Does it cost extra?** It uses your normal Claude Code plan or API key. A full run uses several agents, so large tickets use more of your usage limit.
 
@@ -422,7 +463,7 @@ ai-dev-team/
 ├── agents/                the 8 sub-agents (one Markdown file each)
 ├── commands/              /solve-issue, /plan-issue, /review-pr, /quality-check, /security-check
 ├── hooks/                 hooks.json + guard.sh (safety hook)
-├── settings/              permissions.json (optional allowlist)
+├── settings/              permissions.json, project-settings.json, user-settings.json
 ├── docker/                entrypoint.sh
 ├── Dockerfile, docker-compose.yml, .env.example, run.sh, run.ps1
 ├── install.sh, install.ps1
