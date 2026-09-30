@@ -6,7 +6,7 @@ Give it a rough idea or a GitHub issue. It gives you back a tested, reviewed pul
 /solve-issue "users should be able to mark items as favourite"
 ```
 
-A team of Claude Code agents does the work: one thinks it through, one plans, one codes, one tests, one reviews. After the PR is open, a **separate, fresh session** reviews it again with no memory of how it was built.
+A team of Claude Code agents does the work: one thinks it through, one plans, one codes, one tests, and three review it (correctness, code quality, security). After the PR is open, a **separate, fresh session** reviews it again with no memory of how it was built.
 
 ---
 
@@ -53,7 +53,9 @@ That's it. You get a GitHub issue, a branch `issue-N`, and a pull request with a
 | `/solve-issue 42` | Same, for an existing issue (number or full URL) |
 | `/solve-issue 42 --resume` | Continue a run that stopped |
 | `/plan-issue "<idea>"` | Preview only: ticket + technical plan, no code, no branches |
-| `/review-pr 57` | Independent review of any PR, posted as a PR comment |
+| `/review-pr 57` | Independent review of any PR (correctness + code quality + security), posted as one PR comment |
+| `/quality-check` / `/quality-check 57` | Code quality review of your current branch, or of a PR. Read-only |
+| `/security-check` / `/security-check 57` | Security review of your current branch, or of a PR. Read-only |
 
 If a command name clashes with another plugin, use the full name, e.g. `/ai-dev-team:solve-issue`.
 
@@ -73,11 +75,14 @@ If a command name clashes with another plugin, use the full name, e.g. `/ai-dev-
         ▼   ┌──────────── loop, max 3 rounds ────────────┐
  5. developer    BUILD    writes / fixes the code        ◀────────┐
  6. tester       TEST     writes tests, lint, types, build ─ FAIL ┤
- 7. reviewer     REVIEW   checks the diff against the ticket ─ CHANGES ┘
+ 7. review gate  REVIEW   3 reviewers in parallel ─ any blocking ─┘
+      ├─ reviewer      correctness vs the ticket
+      ├─ code-quality  duplication, complexity, types, lint/format
+      └─ security      injection, XSS, auth, secrets, dependencies
         │           └─────────────────────────────────────────┘
-        ▼   (only when tests pass AND the reviewer approves)
+        ▼   (only when tests pass AND all three reviewers pass)
  8. pull request          commit, push issue-N, open PR
- 9. pr-reviewer  NEW SESSION  fresh eyes, posts a review on the PR
+ 9. NEW SESSION  code-quality + security + pr-reviewer, fresh eyes, one combined review on the PR
                           blocking findings ─▶ asks you before fixing
 ```
 
@@ -89,10 +94,20 @@ The loop stops early if the same failure comes back twice. If it still fails aft
 | architect | Turns the ticket into a plan | No |
 | developer | Writes the code | Yes |
 | tester | Writes tests, runs checks | Test files only |
-| reviewer | Reviews before the PR | No |
+| reviewer | Checks the change does what the ticket asks | No |
+| code-quality | Maintainability: duplication, complexity, naming, dead code, types, lint/format | No |
+| security | Vulnerabilities: injection, XSS, auth, secrets, SSRF, risky dependencies | No |
 | pr-reviewer | Reviews after the PR, in a new session | No |
 
-Every step is logged in `ai-runs/issue-N/` in your project: ticket, plan, and each round's developer, test and review reports.
+### What blocks a PR
+
+| Reviewer | Blocks (sent back to the developer) | Reported in the PR only |
+|---|---|---|
+| reviewer | Acceptance criteria not met, bugs, regressions | Optional suggestions |
+| code-quality | Lint/format/type errors, dead or debug code, duplication, swallowed errors, `any`, weakened tests, unrelated changes | Should-fix and nits |
+| security | **Critical** and **High** findings (e.g. injection, XSS, missing auth, committed secrets) | Medium and Low |
+
+Every step is logged in `ai-runs/issue-N/` in your project: ticket, plan, and each round's developer, test, review, quality and security reports.
 
 ---
 
