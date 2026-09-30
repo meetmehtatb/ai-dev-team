@@ -6,7 +6,7 @@
 /solve-issue "users should be able to mark items as favourite"
 ```
 
-A team of eight Claude Code agents does the work. One thinks the idea through, one plans, one codes, one tests, and three review the result (correctness, code quality, security). After the PR opens, a **separate, fresh session** reviews it again with no memory of how it was built. Everything runs on your machine, in your repository, and commits are made **as you**.
+A team of Claude Code agents does the work. A **triage** agent first sizes the task and picks the right pipeline, so a colour tweak takes a few steps and a new feature gets the full process. Then one thinks the idea through, one plans, one codes, one tests, and up to three review the result (correctness, code quality, security). After the PR opens, a **separate, fresh session** reviews it again with no memory of how it was built. Everything runs on your machine, in your repository, and commits are made **as you**.
 
 ---
 
@@ -15,16 +15,18 @@ A team of eight Claude Code agents does the work. One thinks the idea through, o
 1. [How it works in 30 seconds](#how-it-works-in-30-seconds)
 2. [Quick start](#quick-start)
 3. [Commands](#commands)
-4. [The full flow](#the-full-flow)
-5. [The agents](#the-agents)
-6. [What blocks a PR](#what-blocks-a-pr)
-7. [What a run leaves behind](#what-a-run-leaves-behind)
-8. [Run it in Docker](#run-it-in-docker-optional-safer)
-9. [Safety](#safety)
-10. [Skills and permissions](#skills-and-permissions)
-11. [Manual install](#manual-install-without-the-plugin)
-12. [Troubleshooting and FAQ](#troubleshooting-and-faq)
-13. [For contributors and AI assistants](#for-contributors-and-ai-assistants)
+4. [Right-sized pipelines (triage)](#right-sized-pipelines-triage)
+5. [The full flow](#the-full-flow)
+6. [The agents](#the-agents)
+7. [What blocks a PR](#what-blocks-a-pr)
+8. [What a run leaves behind](#what-a-run-leaves-behind)
+9. [Use it from your phone or the web](#use-it-from-your-phone-or-the-web)
+10. [Run it in Docker](#run-it-in-docker-optional-safer)
+11. [Safety](#safety)
+12. [Skills and permissions](#skills-and-permissions)
+13. [Manual install](#manual-install-without-the-plugin)
+14. [Troubleshooting and FAQ](#troubleshooting-and-faq)
+15. [For contributors and AI assistants](#for-contributors-and-ai-assistants)
 
 ---
 
@@ -32,7 +34,7 @@ A team of eight Claude Code agents does the work. One thinks the idea through, o
 
 ```mermaid
 flowchart LR
-    A([💡 Your idea<br/>or issue]) --> B[🧠 Think<br/>ticket]
+    A([💡 Your idea<br/>or issue]) --> T[🧭 Triage<br/>pick pipeline] --> B[🧠 Think<br/>ticket]
     B --> C[📐 Plan]
     C --> D[💻 Build]
     D --> E[🧪 Test]
@@ -92,8 +94,9 @@ You get a GitHub issue, a branch `issue-N`, and a pull request with the plan, te
 |---|---|---|
 | `/solve-issue "<idea>"` | Full run from a rough idea: creates the issue, builds, tests, reviews, opens the PR | Yes, on branch `issue-N` |
 | `/solve-issue 42` | Same, for an existing issue (number or full URL) | Yes |
+| `/solve-issue "<idea>" --quick` / `--full` | Force the smallest or the full pipeline (safety escalation still applies to `--quick`) | Yes |
 | `/solve-issue 42 --resume` | Continue a run that stopped | Yes |
-| `/plan-issue "<idea>"` | Preview: ticket + technical plan, nothing else | No |
+| `/plan-issue "<idea>"` | Preview: triage tier, ticket and technical plan, nothing else | No |
 | `/review-pr 57` | Independent review of any PR (correctness, quality, security), posted as one PR comment | No |
 | `/quality-check` · `/quality-check 57` | Code quality review of your current branch, or of a PR | No |
 | `/security-check` · `/security-check 57` | Security review of your current branch, or of a PR | No |
@@ -102,12 +105,59 @@ If a name clashes with another plugin, use the full name, e.g. `/ai-dev-team:sol
 
 ---
 
+## Right-sized pipelines (triage)
+
+Not every task needs the whole team. The **triage** agent reads the request, looks at the code it will touch, and picks one of three pipelines:
+
+```mermaid
+flowchart TD
+    REQ([💡 Request]) --> TRI{🧭 triage<br/>size · risk · clarity}
+    TRI -- "1-2 files, looks only,<br/>no risk" --> Q[⚡ quick]
+    TRI -- "small logic change,<br/>one area" --> S[🔧 standard]
+    TRI -- "feature, several areas,<br/>API / auth / data, unclear" --> F[🏗️ full]
+    Q --> QD[developer → tester → reviewer · quick mode → PR]
+    S --> SD[baseline → developer → tester + new tests →<br/>reviewer + code-quality + security → PR → fresh review]
+    F --> FD[analyst → baseline → architect → developer → tester →<br/>reviewer + code-quality + security → PR → fresh review]
+    QD -. "change turned out bigger or risky" .-> S
+    SD -. "change turned out bigger or risky" .-> F
+
+    classDef q fill:#e6f7ea,stroke:#2e9e4f,color:#0d3319
+    classDef s fill:#fff4e0,stroke:#d08a1e,color:#3b2500
+    classDef f fill:#f1e8ff,stroke:#8a4ad0,color:#260f40
+    class Q,QD q
+    class S,SD s
+    class F,FD f
+```
+
+| | ⚡ quick | 🔧 standard | 🏗️ full |
+|---|---|---|---|
+| **Typical task** | Change a button colour, fix a typo, tweak copy or a config value | Small bug fix or logic change in one area | New feature, several areas, API / auth / data changes, unclear request |
+| analyst | no (triage writes a short ticket) | only if unclear | yes |
+| baseline | no | yes | yes |
+| architect | no | no (developer plans inline) | yes |
+| developer + tester | yes (existing checks) | yes (+ new tests) | yes (+ new tests) |
+| reviewers | reviewer in **quick mode** (also checks obvious quality and security issues) | reviewer + code-quality + security | reviewer + code-quality + security |
+| post-PR fresh review | no (run `/review-pr` any time) | yes | yes |
+| Agent runs, roughly | ~4 | ~8 | ~11 |
+
+**Safety rules triage can't bypass**
+- **Risky areas force more review.** Anything touching login/permissions, API routes, user input, data or schema, dependencies, secrets, payments or personal data gets at least **standard** with the **security** agent, and **full** if two or more of these are involved.
+- **The actual change is checked.** After every developer round the orchestrator compares the real diff with triage's estimate. If a "quick" task touched more files or a risky area, or the quick reviewer flags it, the run **escalates** to the next tier and adds the missing stages.
+- **Tests always run** when code changes, and a failing check in a quick run escalates to standard (to separate old failures from new ones).
+- Every reviewer that runs keeps the strict rule: **every finding blocks**.
+- When unsure, triage picks the bigger tier. You can force it with `--full`, or ask for `--quick`, which is only honoured when there are no risk flags.
+
+---
+
 ## The full flow
+
+The diagram below is the **full** pipeline; quick and standard runs skip the stages triage turns off.
 
 ```mermaid
 flowchart TD
     IN([💡 Your idea · issue number · issue URL]) --> PRE[Preflight: clean working tree?]
-    PRE --> AN[🧠 analyst: idea → ticket, creates the GitHub issue]
+    PRE --> TRI[🧭 triage: size · risk · clarity → pick pipeline]
+    TRI --> AN[🧠 analyst: idea → ticket, creates the GitHub issue]
     AN --> BR[🌿 Create branch issue-N from the default branch]
     BR --> BL[🧪 tester · baseline: run the existing checks first]
     BL --> AR[📐 architect: ticket → technical plan]
@@ -128,7 +178,7 @@ flowchart TD
     classDef review fill:#f1e8ff,stroke:#8a4ad0,color:#260f40
     classDef done fill:#e6f7ea,stroke:#2e9e4f,color:#0d3319
     classDef stop fill:#fde8e8,stroke:#d04a4a,color:#401010
-    class PRE,AN,BR,BL,AR setup
+    class PRE,TRI,AN,BR,BL,AR setup
     class DEV,TEST,FIX build
     class GATE,FRESH,ASK review
     class PR,YOU done
@@ -153,7 +203,8 @@ sequenceDiagram
     participant F as Fresh session<br/>/review-pr
 
     You->>O: /solve-issue "rough idea"
-    O->>T: analyst: write the ticket
+    O->>T: triage: size, risk, pick pipeline
+    O->>T: analyst: write the ticket (if needed)
     O->>G: create issue #N
     O->>O: branch issue-N, install deps
     O->>T: tester: baseline checks
@@ -183,6 +234,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph THINK [Think & plan · read-only]
+      triage[🧭 triage]
       analyst[🧠 analyst]
       architect[📐 architect]
     end
@@ -203,7 +255,8 @@ flowchart LR
 
 | Agent | Job | Can change code? |
 |---|---|---|
-| **Orchestrator** (`/solve-issue`) | Runs every stage, the loop limit, the PR and the fresh review | No |
+| **Orchestrator** (`/solve-issue`) | Runs the stages triage picked, the escalation check, the loop limit, the PR and the fresh review | No |
+| **triage** | Sizes the task (quick / standard / full), spots risk flags, and decides which stages and agents run | No |
 | **analyst** | Turns a rough idea into a clear ticket (user story, acceptance criteria, out of scope) | No |
 | **architect** | Turns the ticket into a technical plan: files, steps, tests, risks | No |
 | **developer** | Writes the code, then fixes what testers and reviewers find | Yes |
@@ -239,6 +292,7 @@ A PR only opens when code quality and security report **zero** findings. Stricte
 ```
 ai-runs/
 └── issue-42/
+    ├── triage.md              tier, risk flags, stages chosen
     ├── ticket.md              what to build
     ├── baseline.md            checks before any change
     ├── plan.md                how to build it
@@ -252,6 +306,46 @@ ai-runs/
     ├── pr-body.md
     └── report.md              final summary
 ```
+
+---
+
+## Use it from your phone or the web
+
+Claude Code also runs in the cloud: in the **Claude mobile app** (Code tab) and at **claude.ai/code**. Cloud sessions start from a fresh copy of your GitHub repo, so the team has to live **inside the repo** (in its `.claude/` folder). Set this up once per repo:
+
+```mermaid
+flowchart LR
+    A[💻 On your computer<br/>install.sh your-repo] --> B[📁 your-repo/.claude/<br/>agents · commands · hook]
+    B --> C[⬆️ commit + push<br/>to the default branch]
+    C --> D[📱 Claude app → Code<br/>pick your repo]
+    D --> E["/solve-issue &quot;idea&quot;"]
+```
+
+**1. Add the team to the repo** (on a computer, once per repo)
+```bash
+git clone https://github.com/meetmehtatb/ai-dev-team
+./ai-dev-team/install.sh /path/to/your-repo            # macOS / Linux / Git Bash
+.\ai-dev-team\install.ps1 -Project C:\path\to\your-repo  # Windows
+```
+
+**2. Commit and push it to the default branch** (directly or through a PR)
+```bash
+cd /path/to/your-repo
+git add .claude .gitignore
+git commit -m "Add AI dev team"
+git push
+```
+
+**3. Use it from your phone**
+1. Open the **Claude app** → **Code** (or claude.ai/code in a browser).
+2. Pick your repository and start a session. Make sure the Claude GitHub app has access to the repo.
+3. Type `/solve-issue "your idea"`, `/review-pr 12`, `/security-check` and so on, exactly as on a computer.
+
+**What's different in the cloud**
+- No `gh` needed: the team detects cloud sessions and uses the built-in GitHub tools for issues, PRs and reviews.
+- The post-PR review runs as fresh sub-agents in the same session (they see only the PR, never the build), instead of a separate `claude -p` process.
+- The work happens on the cloud copy; the pushed `issue-N` branch and the PR are what you keep. Merge from GitHub (the GitHub mobile app works well for this).
+- To update the team in a repo later, run the install script again and commit the changes.
 
 ---
 
@@ -382,7 +476,7 @@ git clone https://github.com/meetmehtatb/ai-dev-team && cd ai-dev-team
 .\install.ps1 -Project C:\repo   # one project (Windows)
 ```
 
-The manual install copies the agents, commands and permissions. It does **not** include the safety hook; the plugin does.
+The manual install copies the agents, commands, the safety hook and permissions. A project install (`install.sh /path/to/repo`) also adds `ai-runs/` to `.gitignore`; commit `.claude/` to use the team from your phone or the web.
 
 ---
 
@@ -401,7 +495,7 @@ The manual install copies the agents, commands and permissions. It does **not** 
 
 **Which projects does it work with?** Any GitHub repository. npm, pnpm, yarn and bun are detected automatically from the lockfile, and the default branch is detected too. Other stacks (Python, Go, Java, …) work when their standard test tooling is set up.
 
-**Does it work in VS Code, JetBrains or Cursor?** Yes, anywhere Claude Code runs: the terminal, the VS Code and JetBrains extensions, Cursor's terminal, and the Claude desktop app. It does not run inside other agents (Cursor's own agent, Devin, Copilot).
+**Does it work in VS Code, JetBrains, Cursor or on my phone?** Yes, anywhere Claude Code runs: the terminal, the VS Code and JetBrains extensions, Cursor's terminal, the Claude desktop app, and cloud sessions in the Claude mobile app and claude.ai/code (see [Use it from your phone or the web](#use-it-from-your-phone-or-the-web)). It does not run inside other agents (Cursor's own agent, Devin, Copilot).
 
 **Does it cost extra?** It uses your normal Claude Code plan or API key. A full run uses several agents, so large tickets use more of your usage limit.
 
@@ -419,10 +513,10 @@ ai-dev-team/
 ├── .claude-plugin/
 │   ├── plugin.json        plugin manifest (name, version)
 │   └── marketplace.json   makes this repo installable with /plugin marketplace add
-├── agents/                the 8 sub-agents (one Markdown file each)
+├── agents/                the 9 sub-agents (one Markdown file each)
 ├── commands/              /solve-issue, /plan-issue, /review-pr, /quality-check, /security-check
 ├── hooks/                 hooks.json + guard.sh (safety hook)
-├── settings/              permissions.json (optional allowlist)
+├── settings/              permissions.json, project-settings.json, user-settings.json
 ├── docker/                entrypoint.sh
 ├── Dockerfile, docker-compose.yml, .env.example, run.sh, run.ps1
 ├── install.sh, install.ps1

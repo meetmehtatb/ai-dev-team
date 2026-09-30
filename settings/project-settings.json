@@ -1,0 +1,80 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(gh issue view:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git fetch:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin issue-:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc --noEmit:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr review:*)",
+      "Bash(git switch:*)",
+      "Bash(git show:*)",
+      "Bash(claude -p \"/review-pr:*)",
+      "Bash(gh repo view:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(yarn install:*)",
+      "Bash(yarn run:*)",
+      "Bash(yarn test:*)",
+      "Bash(bun install:*)",
+      "Bash(bun run:*)",
+      "Bash(bun test:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(pnpm audit:*)",
+      "Bash(yarn npm audit:*)",
+      "Bash(npx prettier --check:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(git check-ignore:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(gh pr merge:*)",
+      "Read(./.env*)",
+      "Edit(.github/**)",
+      "Write(.github/**)",
+      "Bash(gh pr review --approve:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

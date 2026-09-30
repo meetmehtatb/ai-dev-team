@@ -10,6 +10,8 @@ PNG exports of the Mermaid diagrams in the main [README](../../README.md), for s
 | `4-agents.png` | The agents and their groups |
 | `5-docker.png` | How the Docker setup fits together |
 | `6-safety.png` | What the safety hook allows and blocks |
+| `7-phone-and-web.png` | Using the team from the Claude mobile app or claude.ai/code |
+| `8-triage-pipelines.png` | How triage picks the quick, standard or full pipeline, and escalation |
 
 The Mermaid source in `README.md` is the source of truth. To regenerate after changing it:
 ```bash
