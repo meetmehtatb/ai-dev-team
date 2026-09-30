@@ -1,4 +1,9 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(gh issue view:*)",

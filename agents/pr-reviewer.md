@@ -25,7 +25,7 @@ Write the review to the file path given by the orchestrator (default `ai-runs/pr
 
 Review format:
 ```
-## Independent AI review
+## Independent review
 **Verdict:** Ready to merge | Needs changes
 
 ### Acceptance criteria

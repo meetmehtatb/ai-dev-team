@@ -1,0 +1,12 @@
+{
+  "name": "ai-dev-team",
+  "owner": { "name": "Meet Mehta", "url": "https://github.com/meetmehtatb" },
+  "metadata": { "description": "AI development team for Claude Code" },
+  "plugins": [
+    {
+      "name": "ai-dev-team",
+      "source": "./",
+      "description": "Requirement or issue -> plan -> develop -> test -> review -> PR -> independent PR review."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+# Usage:
+#   PROJECT_DIR=/path/to/your-repo docker compose run --rm ai-dev-team
+# Windows PowerShell:
+#   $env:PROJECT_DIR="C:\path\to\your-repo"; docker compose run --rm ai-dev-team
+services:
+  ai-dev-team:
+    build: .
+    image: ai-dev-team:latest
+    stdin_open: true
+    tty: true
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      GH_TOKEN: ${GH_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GIT_USER_NAME: ${GIT_USER_NAME:-}
+      GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
+    volumes:
+      - ${PROJECT_DIR:-./workspace}:/workspace
+      - claude-home:/home/node/.claude
+volumes:
+  claude-home:

@@ -1,0 +1,13 @@
+{
+  "description": "AI dev team safety guard. Active only while a /solve-issue run is in progress (marker .git/ai-dev-team.active).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh\"", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}
