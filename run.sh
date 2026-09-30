@@ -11,5 +11,5 @@ command -v docker >/dev/null || { echo "Docker is not installed. See README > Do
 docker info >/dev/null 2>&1 || { echo "Docker is not running. Start Docker Desktop (or the docker service) and try again." >&2; exit 1; }
 [ -f "$HERE/.env" ] || { cp "$HERE/.env.example" "$HERE/.env"; echo "Created .env - fill in GH_TOKEN, GIT_USER_NAME, GIT_USER_EMAIL, then run again." >&2; exit 1; }
 cd "$HERE"
-docker image inspect ai-dev-team:latest >/dev/null 2>&1 || docker compose build
+docker image inspect ai-dev-team:latest >/dev/null 2>&1 || docker compose build || exit $?
 PROJECT_DIR="$PROJECT" docker compose run --rm ai-dev-team

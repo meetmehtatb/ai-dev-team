@@ -1,8 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Mounted repos are owned by the host user; let git work with them.
-git config --global --add safe.directory '*'
+# Phase 1 (root): make the 'node' user match the owner of /workspace, then re-run as that user.
+if [ "$(id -u)" = "0" ]; then
+  uid="$(stat -c %u /workspace 2>/dev/null || echo 1000)"
+  gid="$(stat -c %g /workspace 2>/dev/null || echo 1000)"
+  # Docker Desktop (macOS/Windows) reports root-owned mounts that are still writable: keep uid 1000.
+  if [ "$uid" != "0" ] && [ "$uid" != "$(id -u node)" ]; then
+    usermod -o -u "$uid" node
+  fi
+  if [ "$gid" != "0" ] && [ "$gid" != "$(id -g node)" ]; then
+    if getent group "$gid" >/dev/null; then usermod -g "$gid" node; else groupmod -o -g "$gid" node; fi
+  fi
+  chown -R node:"$(id -g node)" /home/node 2>/dev/null || true
+  exec setpriv --reuid=node --regid="$(id -g node)" --init-groups env HOME=/home/node "$0" "$@"
+fi
+
+# Phase 2 (node user)
+if [ ! -w /workspace ]; then
+  echo "error: /workspace is not writable by uid $(id -u). Check the project folder's permissions." >&2
+  exit 1
+fi
+
+# Trust only the mounted project (owned by the host user), not every repository.
+git config --global --add safe.directory /workspace
 
 # Commits are yours: use your own git identity (GIT_USER_NAME / GIT_USER_EMAIL in .env).
 if [ -n "${GIT_USER_NAME:-}" ] && [ -n "${GIT_USER_EMAIL:-}" ]; then

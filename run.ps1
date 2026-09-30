@@ -14,10 +14,21 @@ if (-not (Test-Path $envFile)) {
   Write-Host "Created .env - fill in GH_TOKEN, GIT_USER_NAME, GIT_USER_EMAIL, then run again."
   exit 1
 }
+$code = 0
 Push-Location $here
 try {
   docker image inspect ai-dev-team:latest *> $null
-  if ($LASTEXITCODE -ne 0) { docker compose build }
-  $env:PROJECT_DIR = $Project
-  docker compose run --rm ai-dev-team
-} finally { Pop-Location }
+  if ($LASTEXITCODE -ne 0) {
+    docker compose build
+    $code = $LASTEXITCODE
+    if ($code -ne 0) { Write-Host "docker compose build failed (exit $code)" -ForegroundColor Red }
+  }
+  if ($code -eq 0) {
+    $env:PROJECT_DIR = $Project
+    docker compose run --rm ai-dev-team
+    $code = $LASTEXITCODE
+  }
+} finally {
+  Pop-Location
+}
+exit $code

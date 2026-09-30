@@ -6,7 +6,7 @@
 - Resume a stopped run with `/solve-issue N --resume` (state saved in `ai-runs/issue-N/state.json`).
 - Early stop when the same failure repeats in two rounds; reviewer verifies earlier findings instead of adding new nitpicks.
 - New `/plan-issue` command: ticket and plan preview, no code.
-- Safety hook: blocks edits to `.github/` and `.env*`, pushes to main/master, force-push, merge and approve while a run is active.
+- Safety hook (active only during a run): only `git push -u origin issue-N` is allowed; blocks force-push, other refspecs, merge/approve (gh and gh api), nested-shell bypasses, and any edit or shell access to `.github/` and `.env*`. Works in linked worktrees.
 - Docker image, compose file and `run.sh` / `run.ps1` one-command start, with Docker install steps in the README.
 - Commits and PRs are made as the user, with no AI attribution lines.
 

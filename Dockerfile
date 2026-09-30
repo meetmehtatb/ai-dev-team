@@ -24,7 +24,9 @@ COPY --chown=node:node hooks /opt/ai-dev-team/hooks
 COPY --chown=node:node settings /opt/ai-dev-team/settings
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/ai-dev-team-entrypoint
 
-USER node
+# Starts as root only to match the container user to the owner of /workspace
+# (so bind-mounted projects are writable on Linux), then drops to that user.
+ENV HOME=/home/node
 WORKDIR /workspace
 ENTRYPOINT ["ai-dev-team-entrypoint"]
 CMD ["claude"]
