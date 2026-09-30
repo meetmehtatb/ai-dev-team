@@ -51,14 +51,14 @@ Invoke `architect` with the ticket, `WORKTREE` = `REPO`, `BASE`, and the baselin
 
 ## Stage 5-7: Develop, test, review loop (round = 1..3)
 The review gate has three independent, read-only reviewers. Launch them **in parallel** (three Agent calls in one message) so none sees the others' output.
-1. `developer`: `WORKTREE`, `BASE`, ticket, plan, baseline, round, and from round 2 the failing test report and/or all blocking findings from the review gate (reviewer required changes, code-quality Must-fix, security Critical/High) -> `round-<n>-developer.md`.
+1. `developer`: `WORKTREE`, `BASE`, ticket, plan, baseline, round, and from round 2 the failing test report and/or all findings from the review gate (reviewer required changes, every code-quality finding, every security finding) -> `round-<n>-developer.md`.
 2. `tester`: `WORKTREE`, `BASE`, ticket, plan, baseline, developer report -> `round-<n>-tests.md`. `FAIL` (new failures only) -> next round, skip review.
 3. **Review gate** (in parallel; each gets `WORKTREE`, `BASE`, ticket, plan, and from round 2 its own previous report):
    - `reviewer` (correctness vs ticket) -> `round-<n>-review.md`
    - `code-quality` (maintainability, lint/format/types) -> `round-<n>-quality.md`
    - `security` (vulnerabilities, secrets, dependencies) -> `round-<n>-security.md`
    - All three pass (`APPROVE`, `PASS`, `PASS`) -> Stage 8.
-   - Any blocking verdict (`CHANGES_REQUESTED`, `CHANGES_REQUESTED`, `BLOCKED`) -> next round with the combined blocking findings. Non-blocking findings (Should-fix, Nits, Medium/Low security) are collected for the PR, not fixed in the loop.
+   - Any blocking verdict (`CHANGES_REQUESTED`, `CHANGES_REQUESTED`, `BLOCKED`) -> next round with **all** their findings. Every security finding (Critical to Low) and every code-quality finding (Must-fix, Should-fix and Nits) must be fixed before the PR; nothing is deferred.
 4. After round 3 without approval, or on an early stop -> **Stop**.
 
 ## Stage 8: Pull request
@@ -69,8 +69,8 @@ The review gate has three independent, read-only reviewers. Launch them **in par
    - Summary (from the plan)
    - Acceptance criteria table (from the final review)
    - Test results table (from the final test report) and pre-existing failures, if any
-   - Code quality: final check table and any Should-fix / Nits left
-   - Security: severity counts, dependency audit result, and any Medium/Low findings left
+   - Code quality: final check table (PASS, zero findings)
+   - Security: final severity counts (all zero) and dependency audit result
    - Rounds used and what each fix round changed
 4. `gh pr create --base BASE --head issue-N --title "<ticket title>" --body-file "<RUN_DIR>/pr-body.md"`. Record PR number `P`.
 

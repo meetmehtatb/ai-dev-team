@@ -12,4 +12,4 @@ Use sub-agents via the Agent/Task tool (plain names, or `ai-dev-team:<name>` whe
    - `security` -> save to `ai-runs/pr-$ARGUMENTS-security.md`
 2. Then `pr-reviewer` with `PR = $ARGUMENTS`, output file `ai-runs/pr-$ARGUMENTS-review.md`, and both reports. It merges them into one review and posts it on the PR.
 
-Do not edit any code, do not push, do not merge, never approve. When done, print the verdict, the number of blocking findings (correctness + code-quality Must-fix + security Critical/High) and the PR URL.
+Do not edit any code, do not push, do not merge, never approve. When done, print the verdict, the number of blocking findings (correctness + all code-quality findings + all security findings) and the PR URL.

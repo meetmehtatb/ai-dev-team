@@ -104,8 +104,10 @@ The loop stops early if the same failure comes back twice. If it still fails aft
 | Reviewer | Blocks (sent back to the developer) | Reported in the PR only |
 |---|---|---|
 | reviewer | Acceptance criteria not met, bugs, regressions | Optional suggestions |
-| code-quality | Lint/format/type errors, dead or debug code, duplication, swallowed errors, `any`, weakened tests, unrelated changes | Should-fix and nits |
-| security | **Critical** and **High** findings (e.g. injection, XSS, missing auth, committed secrets) | Medium and Low |
+| code-quality | **Every** finding: lint/format/type errors, dead or debug code, duplication, swallowed errors, `any`, weakened tests, unrelated changes, and also should-fix items and nits | Nothing |
+| security | **Every** finding, any severity: Critical, High, Medium and Low (e.g. injection, XSS, missing auth, secrets, weak config) | Nothing |
+
+Nothing is left to "fix later": a PR only opens when code quality and security report zero findings. Stricter gates mean more fix rounds; if issues remain after 3 rounds, the run stops without a PR and the report lists what is left.
 
 Every step is logged in `ai-runs/issue-N/` in your project: ticket, plan, and each round's developer, test, review, quality and security reports.
 
