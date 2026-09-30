@@ -7,7 +7,7 @@
 - Early stop when the same failure repeats in two rounds; reviewer verifies earlier findings instead of adding new nitpicks.
 - New `/plan-issue` command: ticket and plan preview, no code.
 - Safety hook: blocks edits to `.github/` and `.env*`, pushes to main/master, force-push, merge and approve while a run is active.
-- Docker image and compose file for a sandboxed run.
+- Docker image, compose file and `run.sh` / `run.ps1` one-command start, with Docker install steps in the README.
 - Commits and PRs are made as the user, with no AI attribution lines.
 
 ## 1.0.0

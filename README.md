@@ -39,6 +39,8 @@ claude
 
 That's it. You get a GitHub issue, a branch `issue-N`, and a pull request with a test and review summary.
 
+> Prefer not to install anything but Docker? See [Run it in Docker](#run-it-in-docker-optional-safer): `./run.sh /path/to/your-repo`.
+
 > Private repo? Ask the owner to add you as a collaborator first, and run `gh auth login` so the marketplace can be read.
 
 ---
@@ -107,34 +109,77 @@ git config --global user.email "you@example.com"
 
 ## Run it in Docker (optional, safer)
 
-The agents run your project's code and tests. To keep that off your machine, run everything in a container.
+The agents run your project's code and tests. Docker keeps that inside a container, away from your machine. Everything you need (Claude Code, the team, git, GitHub CLI, Node, npm, pnpm, yarn) is already in the image.
+
+### Step 1: Install Docker (once)
+
+| OS | How |
+|---|---|
+| **Windows 10/11** | 1. Install **WSL 2**: open PowerShell as Administrator, run `wsl --install`, restart.<br>2. Download and install **Docker Desktop**: https://www.docker.com/products/docker-desktop/<br>3. Start Docker Desktop and wait until it says "Engine running". |
+| **macOS** | Download **Docker Desktop** (Apple chip or Intel): https://www.docker.com/products/docker-desktop/ , open it, wait for "Engine running". Or `brew install --cask docker`. |
+| **Linux** | `curl -fsSL https://get.docker.com \| sh`, then `sudo usermod -aG docker $USER` and log out and back in. |
+
+Check it works:
+```
+docker --version
+docker compose version
+docker run --rm hello-world
+```
+
+### Step 2: Get this repo and fill in `.env` (once)
 
 ```bash
 git clone https://github.com/meetmehtatb/ai-dev-team
 cd ai-dev-team
-cp .env.example .env        # then fill in GH_TOKEN, GIT_USER_NAME, GIT_USER_EMAIL
-docker compose build
+cp .env.example .env          # Windows PowerShell: copy .env.example .env
 ```
 
-Start it for a project:
+Open `.env` and fill in:
+
+| Setting | Needed? | What |
+|---|---|---|
+| `GH_TOKEN` | Yes | GitHub token. Create at https://github.com/settings/personal-access-tokens: **Fine-grained**, select your repo, set Contents, Issues and Pull requests to **Read and write** |
+| `GIT_USER_NAME` | Yes | Your name, so commits are yours |
+| `GIT_USER_EMAIL` | Yes | The email on your GitHub account |
+| `ANTHROPIC_API_KEY` | No | Only if you use an API key. Otherwise you log in with your Claude account (Pro/Max) on first start |
+
+Never commit `.env` (it is already in `.gitignore`).
+
+### Step 3: Start it for your project
 
 ```bash
 # macOS / Linux
-PROJECT_DIR=/path/to/your-repo docker compose run --rm ai-dev-team
+./run.sh /path/to/your-repo
 
 # Windows PowerShell
-$env:PROJECT_DIR="C:\path\to\your-repo"; docker compose run --rm ai-dev-team
+.\run.ps1 C:\path\to\your-repo
 ```
 
-Claude Code opens inside the container with the team installed. The first time, log in with your Claude account (or set `ANTHROPIC_API_KEY` in `.env`); the login is kept in a Docker volume. Then run `/solve-issue ...` as usual.
+The first start builds the image (a few minutes). Claude Code then opens inside the container with the team installed:
+1. First time only: log in to Claude when asked. The login is saved in a Docker volume.
+2. Run `/solve-issue "your idea"` as usual. Your project folder is mounted, so the branch, commits and PR are the same as running it locally.
 
-| `.env` setting | Needed? | What |
-|---|---|---|
-| `GH_TOKEN` | Yes | GitHub fine-grained token for the repo: Contents, Issues, Pull requests = Read and write |
-| `GIT_USER_NAME`, `GIT_USER_EMAIL` | Yes | So commits are made as you |
-| `ANTHROPIC_API_KEY` | No | Only if you use an API key instead of logging in |
+Type `/exit` to leave; the container is removed, your project and login stay.
 
-The image has Node 22, npm, pnpm, yarn, git and the GitHub CLI. For other stacks (Python, Go, Java...), add their toolchain to the `Dockerfile`.
+<details>
+<summary>Without the run scripts (plain docker compose)</summary>
+
+```bash
+docker compose build
+PROJECT_DIR=/path/to/your-repo docker compose run --rm ai-dev-team            # macOS / Linux
+$env:PROJECT_DIR="C:\path\to\your-repo"; docker compose run --rm ai-dev-team  # Windows PowerShell
+```
+</details>
+
+### Docker tips
+
+| Problem | Fix |
+|---|---|
+| "Docker is not running" | Start Docker Desktop and wait for "Engine running" |
+| Windows: very slow `npm install` | Keep the project inside WSL (e.g. `\\wsl$\Ubuntu\home\you\project`) instead of `C:\` |
+| Update Claude Code or the team | `docker compose build --no-cache` |
+| Log in again / reset | `docker volume rm ai-dev-team_claude-home` |
+| Python / Go / Java project | Add that toolchain to the `Dockerfile` (e.g. `apt-get install -y python3-pip`) and rebuild |
 
 ---
 
