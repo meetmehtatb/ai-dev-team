@@ -17,6 +17,10 @@ claude plugin validate .claude-plugin/plugin.json --strict
 bash -n hooks/guard.sh docker/entrypoint.sh install.sh
 ```
 
+## Docs
+- The README diagrams are Mermaid (GitHub renders them). If you change the flow, update them and re-export the PNGs in `docs/diagrams/`.
+- AI assistants read `AGENTS.md`: keep its contracts in sync with the agents.
+
 ## Rules for prompt changes
 - Agents must keep their output formats: the orchestrator parses `VERDICT:` lines.
 - Keep agents project-agnostic: detect package manager, scripts and default branch; never hardcode npm or `main`.

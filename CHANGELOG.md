@@ -6,6 +6,8 @@
 - Review gate in `/solve-issue` now runs reviewer, code-quality and security in parallel each round; a PR only opens when both report zero findings.
 - `/review-pr` runs code-quality and security first and posts one combined review.
 - New `/quality-check` and `/security-check` commands for the current branch or a PR.
+- README rewritten for onboarding: contents, 30-second overview, full-flow, run-sequence, agents, Docker and safety diagrams (Mermaid, rendered by GitHub), run outputs, FAQ and repo map. PNG exports in `docs/diagrams/`.
+- New `AGENTS.md`: orientation and contracts for AI assistants working on this repo.
 
 ## 1.1.0
 - Packaged as a Claude Code plugin with its own marketplace (`/plugin marketplace add meetmehtatb/ai-dev-team`).
